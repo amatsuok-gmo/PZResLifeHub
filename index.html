@@ -1,0 +1,413 @@
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+</head>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family:'Montserrat'}
+.app-header { background: #414042; border-bottom: 0.5px solid var(--color-border-tertiary); padding: 14px 0 12px; display: flex; align-items: center; gap: 14px; }
+.app-header .logo-slot { width: 44px; height: 44px; border-radius: 8px; border: 1.5px dashed var(--color-border-secondary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; background: #fff; }
+.app-header .logo-slot img { width: 100%; height: 100%; object-fit: contain; }
+.app-header .logo-slot .logo-placeholder { font-size: 9px; color: var(--color-text-tertiary); text-align: center; line-height: 1.3; padding: 4px; }
+.app-header-text h1 { font-size: 16px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
+.app-header-text p { font-size: 12px; color: #fff; margin-top: 1px; }
+.app-subtitle { font-size: 12px; color: var(--color-text-secondary); padding: 8px 0 2px; }
+.app { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 24px; padding: 1rem 0; }
+.panel-title { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 12px; }
+.field-group { margin-bottom: 14px; }
+label { display: block; font-size: 13px; color: var(--color-text-secondary); margin-bottom: 4px; }
+input, textarea, select { width: 100%; font-family:'Montserrat'; font-size: 14px; color: var(--color-text-primary); background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 7px 10px; resize: vertical; }
+textarea { min-height: 64px; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--color-border-primary); box-shadow: 0 0 0 2px rgba(128,128,128,0.12); }
+.form-scroll { max-height: 600px; overflow-y: auto; padding-right: 6px; }
+.preview-wrap { position: sticky; top: 0; }
+.email-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; }
+
+/* Preview header — flexbox is fine here since it's just the live preview */
+.email-header { background: #f7941d; padding: 18px 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.email-header .header-copy { min-width: 0; }
+.email-header img { height: 48px; width: auto; display: block; }
+.email-header h2 { color: #fff; font-size: 15px; font-weight: 500; margin: 0; }
+.email-header p { color: #fff; font-size: 12px; margin-top: 3px; }
+
+.email-body { padding: 16px 20px; max-height: 460px; overflow-y: auto; }
+.row { display: flex; gap: 6px; align-items: baseline; padding: 7px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.row:last-child { border-bottom: none; }
+.row-label { font-size: 12px; color: var(--color-text-secondary); min-width: 140px; flex-shrink: 0; }
+.row-val { font-size: 13px; color: var(--color-text-primary); line-height: 1.5; word-break: break-word; }
+.row-val.empty { color: var(--color-text-tertiary); font-style: italic; }
+.subject-row { padding: 10px 16px; border-top: 0.5px solid var(--color-border-tertiary); background: var(--color-background-secondary); display: flex; align-items: center; gap: 8px; }
+.subject-row label { font-size: 12px; color: var(--color-text-secondary); white-space: nowrap; margin: 0; }
+.subject-row input { font-size: 13px; background: var(--color-background-primary); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 16px; border-top: 0.5px solid var(--color-border-tertiary); }
+.btn { font-family:'Montserrat'; font-size: 13px; font-weight: 500; padding: 7px 13px; border-radius: var(--border-radius-md); cursor: pointer; border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-primary); transition: background 0.15s; white-space: nowrap; }
+.btn:hover { background: var(--color-background-secondary); }
+.btn.primary { background: #1a3a5c; color: #fff; border-color: #1a3a5c; }
+.btn.primary:hover { background: #1e4a75; }
+.btn.danger { color: #a32d2d; border-color: #a32d2d22; }
+.btn.danger:hover { background: #fcebeb; }
+.toast { font-size: 12px; color: var(--color-text-success); align-self: center; opacity: 0; transition: opacity 0.3s; margin-left: auto; }
+.section-divider { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-text-secondary); padding: 10px 0 6px; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 10px; margin-top: 6px; }
+.draft-badge { font-size: 11px; color: var(--color-text-tertiary); margin-left: 6px; font-style: italic; }
+@media (max-width: 640px) { .app { grid-template-columns: 1fr; } }
+</style>
+
+<div class="app-header" style="padding: 10px 20px;">
+  <div class="logo-slot" id="logo-slot">
+    <!-- Replace the src below with your actual logo URL -->
+    <img height="50px" src="https://github.com/amatsuok-gmo/YTower2026/blob/main/Pitzer%20Logo.png?raw=true">
+  </div>
+  <div class="app-header-text">
+    <h1>Duty Log Email Builder</h1>
+  </div>
+</div>
+
+<div style="padding: 10px 40px 0;"
+<p class="app-subtitle"><strong>Fill in form fields on the left to preview and send the email on the right.</strong></p>
+
+<div class="app">
+  <div>
+    <p class="panel-title">Form <span class="draft-badge" id="draft-badge"></span></p>
+    <div class="form-scroll">
+      <div class="section-divider">Staff & Keys</div>
+      <div class="field-group">
+        <label>Name(s) of RAs and RLOA on duty</label>
+        <input type="text" id="f-names" placeholder="e.g. Jordan Lee, Sam Park (RLOA)" oninput="save();update()">
+      </div>
+      <div class="field-group">
+        <label>Email address of person submitting</label>
+        <input type="email" id="f-email" placeholder="you@university.edu" oninput="save();update()">
+      </div>
+      <div class="field-group">
+        <label>Duty keys present</label>
+        <input type="text" id="f-keys" placeholder="e.g. Yes – all 4 keys accounted for" oninput="save();update()">
+      </div>
+
+      <div class="section-divider">First Duty Round</div>
+      <div class="field-group">
+        <label>Start and end time</label>
+        <input type="text" id="f-r1-times" placeholder="e.g. 10:00 PM – 10:45 PM" oninput="save();update()">
+      </div>
+      <div class="field-group">
+        <label>What was happening during your first duty walk?</label>
+        <textarea id="f-r1-notes" placeholder="Describe activity, atmosphere, incidents observed…" oninput="save();update()"></textarea>
+      </div>
+
+      <div class="section-divider">Second Duty Round</div>
+      <div class="field-group">
+        <label>Start and end time</label>
+        <input type="text" id="f-r2-times" placeholder="e.g. 1:00 AM – 1:40 AM" oninput="save();update()">
+      </div>
+      <div class="field-group">
+        <label>What was happening during your second duty walk?</label>
+        <textarea id="f-r2-notes" placeholder="Describe activity, atmosphere, incidents observed…" oninput="save();update()"></textarea>
+      </div>
+
+      <div class="section-divider">Incidents & Follow-ups</div>
+      <div class="field-group">
+        <label>Lockouts conducted? If so, where?</label>
+        <input type="text" id="f-lockouts" placeholder="e.g. None / Room 214 at 11:30 PM" oninput="save();update()">
+      </div>
+      <div class="field-group">
+        <label>Facilities issues needing follow-up? If so, where?</label>
+        <input type="text" id="f-facilities" placeholder="e.g. None / Broken light in 3rd floor stairwell" oninput="save();update()">
+      </div>
+      <div class="field-group">
+        <label>Quiet hours / noise complaints? If so, where?</label>
+        <input type="text" id="f-noise" placeholder="e.g. None / Noise complaint Room 308" oninput="save();update()">
+      </div>
+
+      <div class="section-divider">Checklist & Reports</div>
+      <div class="field-group">
+        <label>Was the Residence Life Office Checklist completed?</label>
+        <select id="f-checklist" onchange="save();update()">
+          <option value="">— select —</option>
+          <option>Yes</option>
+          <option>No</option>
+          <option>Partially – see notes</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Any IRs submitted?</label>
+        <input type="text" id="f-irs" placeholder="e.g. None / Yes – 1 IR submitted for noise" oninput="save();update()">
+      </div>
+      <div class="field-group">
+        <label>Any other notes</label>
+        <textarea id="f-other" placeholder="Any additional information…" oninput="save();update()"></textarea>
+      </div>
+      <div class="field-group">
+        <label>Attachments (describe what will be attached)</label>
+        <input type="text" id="f-attachments" placeholder="e.g. None / Photo of broken door handle" oninput="save();update()">
+      </div>
+    </div>
+  </div>
+
+  <!--preview wrap-->
+  <div class="preview-wrap">
+    <p class="panel-title">Email preview</p>
+    <div class="email-card">
+      <div class="email-header">
+        <img src="https://github.com/amatsuok-gmo/YTower2026/blob/main/ResLifeLogoWhite.png?raw=true" alt="logo">
+        <div class="header-copy">
+          <h2>Duty Log Report</h2>
+          <p id="prev-date"></p>
+        </div>
+      </div>
+      <div class="email-body" id="email-body"></div>
+      <div class="subject-row">
+        <label for="f-subject">Subject</label>
+        <input type="text" id="f-subject" oninput="save()">
+      </div>
+      <div class="actions">
+        <button class="btn primary" onclick="openMailto()">Open in email client ↗</button>
+        <button class="btn" onclick="copyEmail()">Copy plain text</button>
+        <button class="btn" onclick="copyHTML()">Copy HTML (Gmail / Outlook)</button>
+        <button class="btn danger" onclick="clearForm()">Clear form</button>
+        <span class="toast" id="toast"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'duty_log_draft_v1';
+const LOGO_URL = 'https://github.com/amatsuok-gmo/YTower2026/blob/main/ResLifeLogoWhite.png?raw=true';
+
+const fields = [
+  { id:'f-names',       label:'RAs / RLOA on duty' },
+  { id:'f-email',       label:'Submitted by (email)' },
+  { id:'f-keys',        label:'Duty keys present' },
+  { id:'f-r1-times',    label:'1st round – times' },
+  { id:'f-r1-notes',    label:'1st round – observations' },
+  { id:'f-r2-times',    label:'2nd round – times' },
+  { id:'f-r2-notes',    label:'2nd round – observations' },
+  { id:'f-lockouts',    label:'Lockouts' },
+  { id:'f-facilities',  label:'Facilities issues' },
+  { id:'f-noise',       label:'Quiet hours / noise complaints' },
+  { id:'f-checklist',   label:'Office checklist completed' },
+  { id:'f-irs',         label:'IRs submitted' },
+  { id:'f-other',       label:'Other notes' },
+  { id:'f-attachments', label:'Attachments' },
+];
+
+const allIds = [...fields.map(f => f.id), 'f-subject'];
+
+function formatDate() {
+  return new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+}
+
+function autoSubject() {
+  return `Duty Log Report – ${new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' })}`;
+}
+
+function val(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+function update() {
+  document.getElementById('prev-date').textContent = formatDate();
+  const body = document.getElementById('email-body');
+  body.innerHTML = fields.map(f => {
+    const v = val(f.id);
+    return `<div class="row">
+      <span class="row-label">${f.label}</span>
+      <span class="row-val${v ? '' : ' empty'}">${v ? v.replace(/\n/g,'<br>') : 'Not filled in'}</span>
+    </div>`;
+  }).join('');
+}
+
+function save() {
+  const draft = {};
+  allIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) draft[id] = el.value;
+  });
+  draft.__saved = Date.now();
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(draft)); } catch(e) {}
+  const badge = document.getElementById('draft-badge');
+  if (badge) badge.textContent = 'Draft saved';
+  update();
+}
+
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const draft = JSON.parse(raw);
+    allIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && draft[id] !== undefined) el.value = draft[id];
+    });
+    const badge = document.getElementById('draft-badge');
+    if (badge && draft.__saved) {
+      const d = new Date(draft.__saved);
+      badge.textContent = `Draft restored from ${d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+    }
+    return true;
+  } catch(e) { return false; }
+}
+
+function clearForm() {
+  if (!confirm('Clear all fields and delete the saved draft?')) return;
+  allIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('f-subject').value = autoSubject();
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+  document.getElementById('draft-badge').textContent = '';
+  update();
+  flash('Form cleared');
+}
+
+function plainText() {
+  const subj = val('f-subject');
+  const lines = [`Subject: ${subj}`, `Date: ${formatDate()}`, '', '---', ''];
+  fields.forEach(f => {
+    const v = val(f.id) || '(not provided)';
+    lines.push(`${f.label}:`);
+    lines.push(v);
+    lines.push('');
+  });
+  return lines.join('\n');
+}
+
+/**
+ * Generates table-based HTML compatible with Gmail, Outlook, and Apple Mail.
+ * Key principles:
+ *  - Outer wrapper table centers content and provides background
+ *  - Header uses a <table> with two <td>s: logo left, title right
+ *  - All layout via tables/tds, no flexbox or CSS Grid
+ *  - Inline styles only — no <style> blocks (stripped by Gmail)
+ *  - Outlook-safe: no shorthand padding, explicit widths, bgcolor on tds
+ */
+function htmlText() {
+  const date = formatDate();
+
+  // Build data rows as table rows
+  const dataRows = fields.map(f => {
+    const rawValue = val(f.id);
+    const value = rawValue
+      ? rawValue.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')
+      : '<span style="font-style:italic;color:#999999">(not provided)</span>';
+
+    return `
+      <tr>
+        <td width="180" valign="top" style="font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:600;color:#555555;padding-top:8px;padding-bottom:8px;padding-right:12px;border-bottom:1px solid #e8e8e8;vertical-align:top;white-space:nowrap;">${f.label}</td>
+        <td valign="top" style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#222222;line-height:1.55;padding-top:8px;padding-bottom:8px;border-bottom:1px solid #e8e8e8;vertical-align:top;">${value}</td>
+      </tr>`;
+  }).join('');
+
+  return `<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <!--[if mso]>
+  <noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
+  <![endif]-->
+  <title>Duty Log Report</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f4;">
+
+<!-- Outer wrapper -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f4f4;">
+  <tr>
+    <td align="center" style="padding-top:24px;padding-bottom:24px;">
+
+      <!-- Email card -->
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;">
+
+        <!-- ══ HEADER ══ -->
+        <tr>
+          <td bgcolor="#f7941d" style="background-color:#f7941d;padding-top:18px;padding-bottom:18px;padding-left:20px;padding-right:20px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <!-- Logo cell -->
+                <td width="80" valign="middle" style="vertical-align:middle;">
+                  <img src="${LOGO_URL}" alt="Residence Life Logo" width="203" height="42" style="display:block;width:203px;height:42px;object-fit:contain;border:0;">
+                </td>
+                <!-- Spacer -->
+                <td width="12" style="width:12px;"></td>
+                <!-- Title cell -->
+                <td valign="middle" align="right" style="vertical-align:middle;text-align:right;">
+                  <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;color:#ffffff;line-height:1.2;">Duty Log Report</p>
+                  <p style="margin:4px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:rgba(255,255,255,0.7);line-height:1.3;">${date}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ══ BODY ══ -->
+        <tr>
+          <td style="padding-top:16px;padding-bottom:16px;padding-left:20px;padding-right:20px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              ${dataRows}
+            </table>
+          </td>
+        </tr>
+
+        <!-- ══ FOOTER ══ -->
+        <tr>
+          <td bgcolor="#f7f7f7" style="background-color:#f7f7f7;padding-top:12px;padding-bottom:12px;padding-left:20px;padding-right:20px;border-top:1px solid #e8e8e8;">
+            <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#999999;text-align:center;">This email was generated automatically by the Duty Log Email Builder.</p>
+          </td>
+        </tr>
+
+      </table>
+      <!-- /Email card -->
+
+    </td>
+  </tr>
+</table>
+<!-- /Outer wrapper -->
+
+</body>
+</html>`;
+}
+
+function openMailto() {
+  const subj = encodeURIComponent(val('f-subject') || autoSubject());
+  const body = encodeURIComponent(plainText());
+  const mailto = `mailto:?subject=${subj}&body=${body}`;
+  window.location.href = mailto;
+}
+
+async function copyEmail() {
+  await navigator.clipboard.writeText(plainText());
+  flash('Plain text copied!');
+}
+
+async function copyHTML() {
+  const html = htmlText();
+  // Use ClipboardItem with both text/html and text/plain for max compatibility
+  try {
+    const htmlBlob = new Blob([html], { type: 'text/html' });
+    const textBlob = new Blob([html], { type: 'text/plain' });
+    await navigator.clipboard.write([
+      new ClipboardItem({ 'text/html': htmlBlob, 'text/plain': textBlob })
+    ]);
+    flash('HTML copied — paste directly into Gmail or Outlook!');
+  } catch(e) {
+    // Fallback: copy as plain text (still pastes HTML source)
+    await navigator.clipboard.writeText(html);
+    flash('HTML source copied!');
+  }
+}
+
+function flash(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg || 'Copied!';
+  el.style.opacity = '1';
+  setTimeout(() => el.style.opacity = '0', 3000);
+}
+
+const loaded = loadDraft();
+if (!loaded) {
+  document.getElementById('f-subject').value = autoSubject();
+}
+update();
+</script>
